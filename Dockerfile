@@ -33,5 +33,5 @@ RUN pip install -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Run Django server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Sleep 30 seconds so that Oracle can start up, then Run Django server
+ENTRYPOINT ["sh", "-c", "sleep 30 && python manage.py runserver 0.0.0.0:8000"]
