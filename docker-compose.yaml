@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  db:
+    image: oracle/database:19.3.0-ee
+    container_name: oracledb
+    volumes:
+      - database:/opt/oracle/oradata
+    ports:
+      - "1522:1521"
+    networks:
+      - finance_network
+
+  backend:
+    build: .
+    container_name: financeai
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - finance_network
+  
+  frontend:
+    build: ./finance-ai-react
+    container_name: financeaireact
+    ports:
+      - "3000:3000"
+    networks:
+      - finance_network
+
+networks:
+  finance_network:
+    driver: bridge
+
+volumes:
+  database:
