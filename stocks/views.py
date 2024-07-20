@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from django.template import loader
 from django.db import connection
 
+import yfinance
+
 # Create your views here.
 def stocks(request):
 
@@ -21,5 +23,7 @@ def stocks(request):
         return HttpResponse(str(e))
 
 def currentStocks(request):
-    template = loader.get_template("currentStocks.html")
-    return HttpResponse(template.render())
+    ticker = yfinance.Ticker("AAPL")
+    todaysData = ticker.history(period = "1d")
+    # template = loader.get_template("currentStocks.html")
+    return HttpResponse(todaysData["Close"])
