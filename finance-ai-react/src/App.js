@@ -1,31 +1,30 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./pages/Layout";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Explore from "./pages/Explore";
+import SignUp from "./pages/SignUp";
+import Login from "./pages/Login";
+import NoPage from "./pages/NoPage";
 
 function App() {
-  const [version, setVersion] = useState([]);
-  const [status, setStatus] = useState([]);
-
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/health/')
-      .then(response => {
-        // Axios automatically parses json data can easily access it
-        // console.log(response.data)
-        setVersion(response.data.version);
-        setStatus(response.data.status);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
-  }, []);
-
   return (
-    <div>
-      <h1>App Health</h1>
-      <h2>Version: {version}</h2>
-      <h2>Status: {status}</h2>
-    </div>
-  );
+    <BrowserRouter>
+        <Routes>
+            <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="explore" element={<Explore />} />
+                <Route path="signup" element={<SignUp />} />
+                <Route path="login" element={<Login />} />
+                <Route path="*" element={<NoPage />} />
+            </Route>
+        </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App;

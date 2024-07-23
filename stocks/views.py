@@ -1,29 +1,41 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.template import loader
-from django.db import connection
+from django.http import HttpResponse, JsonResponse
 
 import yfinance
+import plotly.express as px
+import json
+
 
 # Create your views here.
 def stocks(request):
+    jsonData = ""
+    if request.method == "POST":
+        reqJson = json.loads(request.body)
+        tickerSymbol = reqJson.get("tickerSymbol")
+        timePeriod = reqJson.get("timePeriod")
+        timeInterval = reqJson.get("timeInterval")
+        
+        ticker = yfinance.Ticker(tickerSymbol)
+        data = ticker.history(period = timePeriod, interval = timeInterval)
+        data = data.reset_index()
 
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM TESTCONN")
-            rows = cursor.fetchall()
-            if rows:
-                # Process the rows (example: returning the first row)
-                row = rows[0]
-                return HttpResponse(row)
-            else:
-                # Handle case where no rows are fetched
-                return HttpResponse("No data found")
-    except Exception as e:
-        return HttpResponse(str(e))
+        if 'Datetime' in data.columns:
+            dateCol = 'Datetime'
+        else:
+            dateCol = 'Date'
+
+        jsonData = {
+            "dates": data[dateCol].astype(str).tolist(),
+            "open": data['Open'].tolist(),
+            "high": data['High'].tolist(),
+            "low": data['Low'].tolist(),
+            "close": data['Close'].tolist(),
+        }
+        return JsonResponse(jsonData)
+    else:
+        return HttpResponse("no")
 
 def currentStocks(request):
     ticker = yfinance.Ticker("AAPL")
     todaysData = ticker.history(period = "1d")
-    # template = loader.get_template("currentStocks.html")
     return HttpResponse(todaysData["Close"])
