@@ -23,8 +23,8 @@ const Explore = () => {
     const handleSubmit = () => {
         if (tickerSymbol != '') {
             console.log('data:', { tickerSymbol, timePeriod, timeInterval });
-            const data = ("{data:", { tickerSymbol, timePeriod, timeInterval });
-            axios.post("http://127.0.0.1:8000/stocks/", data)
+            const data = ("data:", { tickerSymbol, timePeriod, timeInterval });
+            axios.post("https://127.0.0.1:8000/stocks/", data)
                 .then(response => {
                     // Axios automatically parses json data can easily access it
                     console.log(response.data)

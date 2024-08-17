@@ -34,4 +34,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Sleep 30 seconds so that Oracle can start up, then Run Django server
-ENTRYPOINT ["sh", "-c", "sleep 30 && python manage.py runserver 0.0.0.0:8000"]
+ENTRYPOINT ["sh", "-c", "sleep 30 && python manage.py runserver_plus --cert-file cert.pem --key-file key.pem 0.0.0.0:8000"]
