@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/esm/Col";
 import Row from "react-bootstrap/esm/Row";
-import axios from "axios"
+import Button from "react-bootstrap/Button"
+import axios, { AxiosHeaders } from "axios"
 import Plot from "react-plotly.js"
 import { useDebounce } from 'use-debounce';
+import Cookies from "universal-cookie"
 
 const Explore = () => {
 
@@ -19,15 +21,14 @@ const Explore = () => {
     const [chartLow, setChartLow] = useState([]);
     const [chartClose, setChartClose] = useState([]);
 
+    const cookies = new Cookies();
 
-    const handleSubmit = () => {
+    const handleRequest = () => {
         if (tickerSymbol != '') {
-            console.log('data:', { tickerSymbol, timePeriod, timeInterval });
             const data = ("data:", { tickerSymbol, timePeriod, timeInterval });
             axios.post("https://127.0.0.1:8000/stocks/", data)
                 .then(response => {
                     // Axios automatically parses json data can easily access it
-                    console.log(response.data)
                     setChartDates(response.data.dates)
                     setChartOpen(response.data.open)
                     setChartHigh(response.data.high)
@@ -54,7 +55,7 @@ const Explore = () => {
 
     // useEffect to handle form submission whenever either state changes
     useEffect(() => {
-        handleSubmit();
+        handleRequest();
     }, [tickerSymbol, timePeriod, timeInterval]);
 
     const getIntervalOptions = (timePeriod) => {
@@ -79,6 +80,21 @@ const Explore = () => {
                 return [];
         }
     };
+
+    const saveToDashboard = (chartType) => {
+        if (tickerSymbol != '') {
+            const data = ("data:", { chartType, tickerSymbol, timePeriod, timeInterval });
+            console.log("Saving to dashboard: ");
+            console.log(data);
+            axios.post("https://127.0.0.1:8000/dashboard/save", data, {headers: {Authorization: cookies.get("access")}}, { withCredentials: true})
+                .then(response => {
+                    console.log("Successfully added chart to dashboard");
+
+                }).catch(error => {
+                    console.log("Unable to save to dashboard");
+                });
+        }
+    }
 
     return (
         <>
@@ -120,66 +136,67 @@ const Explore = () => {
             <h1>Stock Data for: {tickerSymbol}</h1>
 
             <Row>
-            <Col xs="auto">
-            <Plot
-                data={[
-                    {
-                        x: chartDates,
-                        y: chartClose,
-                        type: 'line',
-                        mode: 'lines',
-                        marker: { color: 'blue' },
-                    },
-                ]}
-                layout={{ width: 800, height: 500}}
-            />
-            </Col>
-            <Col xs="auto">
-            <Plot
-                data={[
-                    {
-                        x: chartDates,
-                        close: chartClose,
-                        decreasing: { line: { color: 'red' } },
-                        high: chartHigh,
-                        increasing: { line: { color: 'green' } },
-                        line: { color: 'rgba(31,119,180,1)' },
-                        low: chartLow,
-                        open: chartOpen,
-                        type: 'candlestick',
-                        xaxis: 'x',
-                        yaxis: 'y'
-                    }
+                <Col xs="auto">
+                    <Plot
+                        data={[
+                            {
+                                x: chartDates,
+                                y: chartClose,
+                                type: 'line',
+                                mode: 'lines',
+                                marker: { color: 'blue' },
+                            },
+                        ]}
+                        layout={{ width: 800, height: 500 }}
+                    />
+                    <Button className="mt-4" onClick={() => saveToDashboard("line")}>Save to Dashboard</Button>
+                </Col>
+                <Col xs="auto">
+                    <Plot
+                        data={[
+                            {
+                                x: chartDates,
+                                close: chartClose,
+                                decreasing: { line: { color: 'red' } },
+                                high: chartHigh,
+                                increasing: { line: { color: 'green' } },
+                                line: { color: 'rgba(31,119,180,1)' },
+                                low: chartLow,
+                                open: chartOpen,
+                                type: 'candlestick',
+                                xaxis: 'x',
+                                yaxis: 'y'
+                            }
 
-                ]}
-                layout={
-                    {
-                        width: 800, height: 500,
-                        dragmode: 'zoom',
-                        margin: {
-                            r: 10,
-                            t: 25,
-                            b: 40,
-                            l: 60
-                        },
-                        showlegend: false,
-                        xaxis: {
-                            autorange: true,
-                            domain: [0, 1],
-                            range: [chartDates[0], chartDates[-1]],
-                            rangeslider: { range: [chartDates[0], chartDates[-1]] },
-                            type: 'date'
-                        },
-                        yaxis: {
-                            autorange: true,
-                            domain: [0, 1],
-                            // range: [],
-                            type: 'linear'
+                        ]}
+                        layout={
+                            {
+                                width: 800, height: 500,
+                                dragmode: 'zoom',
+                                margin: {
+                                    r: 10,
+                                    t: 25,
+                                    b: 40,
+                                    l: 60
+                                },
+                                showlegend: false,
+                                xaxis: {
+                                    autorange: true,
+                                    domain: [0, 1],
+                                    range: [chartDates[0], chartDates[-1]],
+                                    rangeslider: { range: [chartDates[0], chartDates[-1]] },
+                                    type: 'date'
+                                },
+                                yaxis: {
+                                    autorange: true,
+                                    domain: [0, 1],
+                                    type: 'linear'
+                                }
+                            }
                         }
-                    }
-                }
-            />
-            </Col>
+                    />
+                    <Button className="mt-4" onClick={() => saveToDashboard("candle")}>Save to Dashboard</Button>
+                </Col>
             </Row>
         </>
     );

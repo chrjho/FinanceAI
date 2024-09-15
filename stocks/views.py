@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
 import yfinance
@@ -34,8 +33,3 @@ def stocks(request):
         return JsonResponse(jsonData)
     else:
         return HttpResponse("no")
-
-def currentStocks(request):
-    ticker = yfinance.Ticker("AAPL")
-    todaysData = ticker.history(period = "1d")
-    return HttpResponse(todaysData["Close"])
