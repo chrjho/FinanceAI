@@ -1,9 +1,9 @@
-import Form from "react-bootstrap/Form"
-import Button from "react-bootstrap/Button"
-import React, { useState, useContext} from "react"
-import axios from "axios"
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import React, { useState, useContext} from "react";
+import axios from "axios";
 import { useNavigate,Link } from "react-router-dom";
-import Cookies from "universal-cookie"
+import Cookies from "universal-cookie";
 import { AuthContext } from '../AuthProvider';
 
 const Login = () => {
@@ -27,7 +27,6 @@ const Login = () => {
           console.log("Login: success");
           setLoginResponse("Login: success");
           setLoginTextColor("text-success");
-          const cookies = new Cookies();
           const headers = response.headers;
           let access = headers.get("Authorization").split(" ")[1];
           cookies.set("access", access, {httpOnly: false, secure: true, path: "/", maxAge: 60 * 60 * 24 * 365});
