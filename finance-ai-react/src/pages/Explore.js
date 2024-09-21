@@ -86,7 +86,7 @@ const Explore = () => {
             const data = ("data:", { chartType, tickerSymbol, timePeriod, timeInterval });
             console.log("Saving to dashboard: ");
             console.log(data);
-            axios.post("https://127.0.0.1:8000/dashboard/save", data, {headers: {Authorization: cookies.get("access")}}, { withCredentials: true})
+            axios.post("https://127.0.0.1:8000/dashboard/save", data, {headers: {Authorization: cookies.get("access")}})
                 .then(response => {
                     console.log("Successfully added chart to dashboard");
 

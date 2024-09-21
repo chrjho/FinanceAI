@@ -31,3 +31,18 @@ def saveToDashboard(request):
 def insertDashboard(userId, chartConfigs):
     with connection.cursor() as cursor:
         cursor.callproc("INSERTDASHBOARD", [str(userId), str(chartConfigs)])
+
+def removePanel(request):
+    if request.method == "POST":
+        accessToken = AccessToken(request.headers.get("Authorization"))
+        userId = accessToken.get("user_id").replace("-","")
+
+        reqJson = json.loads(request.body)
+        chartConfig = json.dumps(reqJson)
+
+        with connection.cursor() as cursor:
+            try:
+                cursor.callproc("REMOVEPANEL", [userId, chartConfig])
+                return HttpResponse("Panel removed")
+            except:
+                return HttpResponse("No data found", status=404)
