@@ -8,7 +8,7 @@ import { AuthContext } from '../AuthProvider';
 
 const Login = () => {
 
-    const [usernameInput, setusernameInput] = useState("");
+    const [usernameInput, setUsernameInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
 
     const [loginResponse, setLoginResponse] = useState("");
@@ -63,7 +63,7 @@ const Login = () => {
       {
       <Form onSubmit={handleSubmit}>
         <Form.Label>Username</Form.Label>
-        <Form.Control required onChange={e => setusernameInput(e.target.value)} type="text" name="usernameInput" value={usernameInput}/>
+        <Form.Control required onChange={e => setUsernameInput(e.target.value)} type="text" name="usernameInput" value={usernameInput}/>
         <Form.Label>Password</Form.Label>
         <Form.Control required onChange={e => setPasswordInput(e.target.value)} type="password" name="passwordInput" value={passwordInput}/>
         <Button className="mt-3" type="submit">Login</Button>

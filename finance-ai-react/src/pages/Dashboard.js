@@ -1,9 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from '../AuthProvider';
+import React from "react";
+import 'reactjs-popup/dist/index.css';
 import axios from "axios";
 import Cookies from "universal-cookie";
 import Button from "react-bootstrap/Button";
+import Popup from "reactjs-popup"
+import Form from "react-bootstrap/Form"
 import Plot from "react-plotly.js";
 import RGL, { WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -27,6 +31,11 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const cookies = new Cookies();
     const navigate = useNavigate();
+
+    const [rawConfigs, setRawConfigs] = useState([]);
+    const [removeOptions, setRemoveOptions] = useState([]);
+    const [selectedRemoveTicker, setSelectedRemoveTicker] = useState("");
+    const [selectedRemoveOption, setSelectedRemoveOption] = useState("");
 
     const chartTypeLocal = [];
     const timePeriodMap = new Map([
@@ -78,15 +87,16 @@ const Dashboard = () => {
         const fetchDashboardData = async () => {
             try {
                 const response = await axios.get("https://127.0.0.1:8000/dashboard", {
-                    headers: { Authorization: cookies.get("access") },
-                    withCredentials: true
+                    headers: { Authorization: cookies.get("access") }
                 });
 
-                const listOfConfigs = response.data.split(";");
+                const listOfConfigs = response.data.split(";").filter(item => item !== "");
+                setRawConfigs(listOfConfigs);
                 const tickerSymbols = [];
                 const timePeriods = [];
                 const timeIntervals = [];
                 const chartTitles = [];
+                console.log("CONFIGS", listOfConfigs);
 
                 listOfConfigs.forEach(config => {
                     const json = JSON.parse(config);
@@ -129,15 +139,53 @@ const Dashboard = () => {
     }, [navigate, layout, currentLayout]);
 
     const onDragStop = (newLayout) => {
-        setLayout(newLayout)
+        setLayout(newLayout);
     }
 
     const saveLayout = () => {
-        console.log("...", layout)
+        console.log("...", layout);
         setCurrentLayout(layout);
         localStorage.setItem('dashboardLayout', JSON.stringify(layout));
-        navigate(0)
+        navigate(0);
     };
+
+    const removePanel = (event) => {
+        event.preventDefault();
+        console.log("Removing panel for: ", selectedRemoveTicker, selectedRemoveOption);
+        axios.post("https://127.0.0.1:8000/dashboard/remove", 
+            { "chartType": selectedRemoveOption.split(":")[0], 
+                "tickerSymbol": selectedRemoveTicker, 
+                "timePeriod": selectedRemoveOption.split(": ")[1].split(" period")[0], 
+                "timeInterval": selectedRemoveOption.split(", ")[1].split(" intervals")[0] }
+            , { headers: { Authorization: cookies.get("access") } })
+        .then(response => {
+            if(response.data.message == "Panel removed"){
+              console.log("Panel remove: success");
+            }
+            else{
+              console.log("Panel remove: failure");
+            }
+          })
+          .catch(error => {
+            console.error('Error removing panel, please try again.', error);
+          });
+        localStorage.removeItem("dashboardLayout");
+        navigate(0);
+    };
+
+    const getConfigsForTicker = (event) => {
+        const { value } = event.target;
+        setSelectedRemoveTicker(value.toUpperCase());
+        const options = [];
+        rawConfigs.forEach(config => {
+            const json = JSON.parse(config);
+            const ticker = json["tickerSymbol"];
+            if (ticker === value.toUpperCase()) {
+                options.push(json["chartType"] + ": " + json["timePeriod"] + " period, " + json["timeInterval"] + " intervals");
+            }
+        });
+        setRemoveOptions(options);
+    }
 
     if (isLoading) {
         return <h1>Loading Dashboard...</h1>;
@@ -146,13 +194,32 @@ const Dashboard = () => {
     return (
         <>
             <h1>Dashboard</h1>
-            <Button onClick={saveLayout}>Save Layout</Button>
+            <Button className="m-1" onClick={saveLayout}>Save Layout</Button>
+            <Popup trigger=
+                {<Button className="m-1">Remove Panel</Button>}
+                position="right center">
+                <Form onSubmit={removePanel}>
+                    <Form.Label>Ticker Symbol</Form.Label>
+                    <Form.Control required onChange={getConfigsForTicker} type="text"/>
+                    <Form.Label>Time Period, Time Interval</Form.Label>
+                    <Form.Select required onChange={e => setSelectedRemoveOption(e.target.value)}>
+                        <option value="" disabled selected>Select an option</option>
+                        {removeOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </Form.Select>
+                    <Button className="mt-3" type="submit">Remove</Button>
+                </Form>
+            </Popup>
             <ReactGridLayout 
                 className="layout" 
                 cols={3} 
                 rowHeight={400} 
                 width={2000}
                 layout={currentLayout}
+                isResizable={false}
                 onDragStop={onDragStop}
             >
                 {listOfDatas.map((data, index) => (
