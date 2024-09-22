@@ -28,6 +28,7 @@ const Dashboard = () => {
         const savedLayout = localStorage.getItem('dashboardLayout');
         return savedLayout ? JSON.parse(savedLayout) : [];
     });
+    const [isDraggable, setIsDraggable] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const cookies = new Cookies();
     const navigate = useNavigate();
@@ -142,9 +143,15 @@ const Dashboard = () => {
         setLayout(newLayout);
     }
 
+    
+    const editLayout = () => {
+        setIsDraggable(true);
+    };
+
     const saveLayout = () => {
         console.log("...", layout);
         setCurrentLayout(layout);
+        setIsDraggable(false);
         localStorage.setItem('dashboardLayout', JSON.stringify(layout));
         navigate(0);
     };
@@ -194,7 +201,11 @@ const Dashboard = () => {
     return (
         <>
             <h1>Dashboard</h1>
-            <Button className="m-1" onClick={saveLayout}>Save Layout</Button>
+            <div>
+            <Button className="m-1" disabled={isDraggable} onClick={editLayout}>Edit Layout</Button>
+            <Button className="m-1" hidden={!isDraggable} onClick={saveLayout}>Save Layout</Button>
+            <h4 hidden={!isDraggable}>Editing... drag to desired location then click Save Layout</h4>
+            </div>
             <Popup trigger=
                 {<Button className="m-1">Remove Panel</Button>}
                 position="right center">
@@ -220,6 +231,7 @@ const Dashboard = () => {
                 width={2000}
                 layout={currentLayout}
                 isResizable={false}
+                isDraggable={isDraggable}
                 onDragStop={onDragStop}
             >
                 {listOfDatas.map((data, index) => (
